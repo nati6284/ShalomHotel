@@ -1,7 +1,7 @@
 package com.shalom.shalomhotel.Service.interfac;
 
 import com.shalom.shalomhotel.Dto.Response;
-import com.shalom.shalomhotel.Service.impl.RomService;
+import com.shalom.shalomhotel.Dto.AvailableRoomDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -9,20 +9,27 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface IRoomService {
+    // Room Type Management
+    Response addRoomType(String typeName, String description, BigDecimal pricePerNight,
+                         Integer maxCapacity, String amenities, MultipartFile photo);
+    Response updateRoomType(Long id, String description, BigDecimal pricePerNight,
+                            Integer maxCapacity, String amenities, MultipartFile photo);
+    Response deleteRoomType(Long id);
+    Response getAllRoomTypes();
+    Response getRoomTypeById(Long id);
 
-    Response addNewRoom(MultipartFile photo, String roomType, BigDecimal roomPrice, String description);
-
-    List<String> getAllRoomType();
-
+    // Room Management
+    Response addRoom(String roomNumber, Integer floorNumber, Long roomTypeId,
+                     Boolean hasView, Boolean isAccessible, String specialFeatures);
+    Response updateRoom(Long id, String roomNumber, Integer floorNumber, Long roomTypeId,
+                        Boolean hasView, Boolean isAccessible, String specialFeatures);
+    Response deleteRoom(Long id);
     Response getAllRooms();
+    Response getRoomById(Long id);
+    Response updateRoomStatus(Long roomId, String status);
 
-    Response deleteRoom(Long roomId);
+    Response getAvailableRoomsByDatesAndType(LocalDate checkInDate, LocalDate checkOutDate,
+                                             String roomType);
+    List<String> getAllRoomTypeNames();
 
-    Response updateRoom(Long roomId, String description, String roomType, BigDecimal roomPrice,MultipartFile photo);
-
-    Response getRoomById(Long roomId);
-
-    Response getAvailableRoomsByDataAndType(LocalDate checkInDate, LocalDate checkOutDate, String roomType);
-
-    Response getAllAvailableRooms();
 }

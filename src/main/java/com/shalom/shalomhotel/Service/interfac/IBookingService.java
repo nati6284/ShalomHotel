@@ -1,17 +1,28 @@
 package com.shalom.shalomhotel.Service.interfac;
 
-import com.fasterxml.classmate.members.ResolvedParameterizedMember;
+import com.shalom.shalomhotel.Dto.BookingRequestDTO;
 import com.shalom.shalomhotel.Dto.Response;
-import com.shalom.shalomhotel.entity.Booking;
+import java.time.LocalDate;
+import java.util.List;
 
 public interface IBookingService {
 
-    Response saveBooking(Long roomId, Long userId, Booking bookingReuest);
-
-    Response findBookingConfirmationCode(String confirmationCode);
-
+    // Create and retrieve bookings
+    Response createBooking(BookingRequestDTO bookingRequest);
+    Response getBookingByConfirmationCode(String confirmationCode);
+    Response getUserBookings(Long userId);
     Response getAllBookings();
 
-    Response cancelBooking(Long bookingId);
+    // Booking status management
+    Response cancelBooking(String confirmationCode);
+    Response confirmBooking(String confirmationCode);
+
+    Response getBookingsByStatus(String status);
+
+    Response searchBookings(String searchTerm);
+
+    Response checkInBooking(String confirmationCode);
+    Response checkOutBooking(String confirmationCode);
+
 
 }

@@ -1,23 +1,17 @@
 package com.shalom.shalomhotel.repository;
 
 import com.shalom.shalomhotel.entity.Room;
+import com.shalom.shalomhotel.entity.RoomType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
+@Repository
 public interface RoomRepository extends JpaRepository<Room, Long> {
+    Optional<Room> findByRoomNumber(String roomNumber);
+    List<Room> findByRoomTypeId(Long roomTypeId);
+    long countByRoomType(RoomType roomType);
 
-    @Query("SELECT DISTINCT r.roomType FROM Room r")
-    List<String> findDistinctRoomTypes();
-
-    @Query("SELECT r FROM Room r WHERE r.roomType LIKE %:roomType% AND r.id NOT IN " +
-            "(SELECT bk.room.id FROM Booking bk WHERE (bk.checkInDate <= :checkOutDate) " +
-            "AND (bk.checkOutDate >= :checkInDate))")
-    List<Room> findAvailableRoomsByDatesAndTypes(LocalDate checkInDate, LocalDate checkOutDate, String roomType);
-
-
-    @Query("SELECT r FROM Room r WHERE r.id NOT IN (SELECT b.room.id FROM Booking b)")
-    List<Room> getAllAvailableRooms();
 }

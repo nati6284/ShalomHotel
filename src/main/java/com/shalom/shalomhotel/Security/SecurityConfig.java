@@ -1,6 +1,5 @@
 package com.shalom.shalomhotel.Security;
 
-
 import com.shalom.shalomhotel.Service.CustomUserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +24,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-
     @Autowired
     private CustomUserDetailService customUserDetailsService;
     @Autowired
@@ -33,11 +31,47 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.csrf(AbstractHttpConfigurer::disable)
+        httpSecurity
+                .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/auth/**", "/rooms/**", "/bookings/**").permitAll()
-                        .anyRequest().authenticated())
+
+                        .requestMatchers(
+                                "/auth/**",
+                                "/api/bookings/confirmation/**",
+                                "/api/rooms/alltypes",
+                                "/api/rooms/types/names",
+                                "/api/rooms/types/**",
+                                "/api/rooms/availability",
+                                "/api/rooms/search",
+                                "/api/rooms/all",
+                                "/api/rooms/{id}"
+                        ).permitAll()
+
+                        .requestMatchers(
+                                "/api/rooms/addtypes",
+                                "/api/rooms/updatetypes/**",
+                                "/api/rooms/deletetypes/**",
+                                "/api/rooms/addroom",
+                                "/api/rooms/updateRoom/**",
+                                "/api/rooms/updatestatus/**",
+                                "/api/rooms/delete/**",
+                                "/api/rooms/inventory",
+                                "/user/all"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                "/api/bookings/**",
+                                "/user/get-by-id/**",
+                                "/user/delete/**",
+                                "/user/get-logged-in-profile-info",
+                                "/user/get-user-booking/**",
+                                "/user/update/**",
+                                "/user/update-my-profile"
+                        ).authenticated()
+
+                        .anyRequest().authenticated()
+                )
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

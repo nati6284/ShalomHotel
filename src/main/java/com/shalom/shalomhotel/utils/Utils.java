@@ -1,141 +1,190 @@
 package com.shalom.shalomhotel.utils;
 
-import com.shalom.shalomhotel.Dto.BookingDTO;
-import com.shalom.shalomhotel.Dto.RoomDTO;
-import com.shalom.shalomhotel.Dto.UserDTO;
-import com.shalom.shalomhotel.entity.Booking;
-import com.shalom.shalomhotel.entity.Room;
-import com.shalom.shalomhotel.entity.User;
-
-import java.security.SecureRandom;
+import com.shalom.shalomhotel.Dto.*;
+import com.shalom.shalomhotel.entity.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class Utils {
 
-    private static final String ALPHANUMERIC_STRING = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    private static final SecureRandom secureRandom = new SecureRandom();
-
-
-    public static String generateRandomConfirmationCode(int length) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            int randomIndex = secureRandom.nextInt(ALPHANUMERIC_STRING.length());
-            char randomChar = ALPHANUMERIC_STRING.charAt(randomIndex);
-            stringBuilder.append(randomChar);
-        }
-        return stringBuilder.toString();
-    }
-
-
-    public static UserDTO mapUserEntityToUserDTO(User user) {
-        UserDTO userDTO = new UserDTO();
-
-        userDTO.setId(user.getId());
-        userDTO.setName(user.getName());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setPhoneNumber(user.getPhoneNumber());
-        userDTO.setRole(user.getRole());
-        return userDTO;
-    }
-
+    // Room mapping methods
     public static RoomDTO mapRoomEntityToRoomDTO(Room room) {
-        RoomDTO roomDTO = new RoomDTO();
+        if (room == null) return null;
 
-        roomDTO.setId(room.getId());
-        roomDTO.setRoomType(room.getRoomType());
-        roomDTO.setRoomPrice(room.getRoomPrice());
-        roomDTO.setRoomPhotoUrl(room.getRoomPhotoUrl());
-        roomDTO.setRoomDescription(room.getRoomDescription());
-        return roomDTO;
+      RoomDTO dto = new RoomDTO();
+        dto.setId(room.getId());
+        dto.setRoomNumber(room.getRoomNumber());
+        dto.setFloorNumber(room.getFloorNumber());
+        dto.setStatus(room.getStatus());
+        dto.setHasView(room.getHasView());
+        dto.setIsAccessible(room.getIsAccessible());
+        dto.setSpecialFeatures(room.getSpecialFeatures());
+
+        // Map room type info
+        if (room.getRoomType() != null) {
+            dto.setRoomType(room.getRoomType().getTypeName()); // Simple string
+            dto.setRoomTypeId(room.getRoomType().getId());
+            dto.setRoomTypeName(room.getRoomType().getTypeName());
+            dto.setDescription(room.getRoomType().getDescription());
+            dto.setPricePerNight(room.getRoomType().getPricePerNight());
+            dto.setMaxCapacity(room.getRoomType().getMaxCapacity());
+            dto.setPhotoUrl(room.getRoomType().getPhotoUrl());
+            dto.setAmenities(room.getRoomType().getAmenities());
+        }
+
+        return dto;
     }
 
+    public static RoomTypeDTO mapRoomTypeEntityToRoomTypeDTO(RoomType roomType) {
+        if (roomType == null) return null;
+
+        RoomTypeDTO dto = new RoomTypeDTO();
+        dto.setId(roomType.getId());
+        dto.setTypeName(roomType.getTypeName());
+        dto.setDescription(roomType.getDescription());
+        dto.setPricePerNight(roomType.getPricePerNight());
+        dto.setPhotoUrl(roomType.getPhotoUrl());
+        dto.setMaxCapacity(roomType.getMaxCapacity());
+        dto.setAmenities(roomType.getAmenities());
+
+        return dto;
+    }
+
+    // User mapping methods
+    public static UserDTO mapUserEntityToUserDTO(User user) {
+        if (user == null) return null;
+
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setRole(user.getRole());
+        return dto;
+    }
+
+    // Booking mapping methods
     public static BookingDTO mapBookingEntityToBookingDTO(Booking booking) {
-        BookingDTO bookingDTO = new BookingDTO();
+        if (booking == null) return null;
 
+        BookingDTO dto = new BookingDTO();
+        dto.setId(booking.getId());
+        dto.setBookingConfirmationCode(booking.getBookingConfirmationCode());
+        dto.setCheckInDate(booking.getCheckInDate());
+        dto.setCheckOutDate(booking.getCheckOutDate());
+        dto.setNumberOfGuests(booking.getNumberOfGuests());
+        dto.setTotalPrice(booking.getTotalPrice());
+        dto.setBookingStatus(booking.getBookingStatus());
+        dto.setSpecialRequests(booking.getSpecialRequests());
+        dto.setBookingDate(booking.getBookingDate());
+        dto.setConfirmationDate(booking.getConfirmationDate());
+        dto.setCancellationDate(booking.getCancellationDate());
 
-        bookingDTO.setId(booking.getId());
-        bookingDTO.setCheckInDate(booking.getCheckInDate());
-        bookingDTO.setCheckOutDate(booking.getCheckOutDate());
-        bookingDTO.setNumOfAdults(booking.getNumOfAdults());
-        bookingDTO.setNumOfChildren(booking.getNumOfChildren());
-        bookingDTO.setTotalNumOfGuest(booking.getTotalNumOfGuest());
-        bookingDTO.setBookingConfirmationCode(booking.getBookingConfirmationCode());
-        return bookingDTO;
-    }
-
-    public static RoomDTO mapRoomEntityToRoomDTOPlusBookings(Room room) {
-        RoomDTO roomDTO = new RoomDTO();
-
-        roomDTO.setId(room.getId());
-        roomDTO.setRoomType(room.getRoomType());
-        roomDTO.setRoomPrice(room.getRoomPrice());
-        roomDTO.setRoomPhotoUrl(room.getRoomPhotoUrl());
-        roomDTO.setRoomDescription(room.getRoomDescription());
-
-        if (room.getBookings() != null) {
-            roomDTO.setBookings(room.getBookings()
-                    .stream()
-                    .map(Utils::mapBookingEntityToBookingDTO)
-                    .collect(Collectors.toList()));
-        }
-        return roomDTO;
-    }
-
-    public static BookingDTO mapBookingEntityToBookingDTOPlusBookedRooms(Booking booking, boolean mapUser) {
-
-        BookingDTO bookingDTO = new BookingDTO();
-
-        bookingDTO.setId(booking.getId());
-        bookingDTO.setCheckInDate(booking.getCheckInDate());
-        bookingDTO.setCheckOutDate(booking.getCheckOutDate());
-        bookingDTO.setNumOfAdults(booking.getNumOfAdults());
-        bookingDTO.setNumOfChildren(booking.getNumOfChildren());
-        bookingDTO.setTotalNumOfGuest(booking.getTotalNumOfGuest());
-        bookingDTO.setBookingConfirmationCode(booking.getBookingConfirmationCode());
-        if (mapUser) {
-            bookingDTO.setUser(Utils.mapUserEntityToUserDTO(booking.getUser()));
-        }
+        // Map room info
         if (booking.getRoom() != null) {
-            RoomDTO roomDTO = new RoomDTO();
-
-            roomDTO.setId(booking.getRoom().getId());
-            roomDTO.setRoomType(booking.getRoom().getRoomType());
-            roomDTO.setRoomPrice(booking.getRoom().getRoomPrice());
-            roomDTO.setRoomPhotoUrl(booking.getRoom().getRoomPhotoUrl());
-            roomDTO.setRoomDescription(booking.getRoom().getRoomDescription());
-            bookingDTO.setRoom(roomDTO);
+            dto.setRoomId(booking.getRoom().getId());
+            dto.setRoomNumber(booking.getRoom().getRoomNumber());
+            if (booking.getRoom().getRoomType() != null) {
+                dto.setRoomType(booking.getRoom().getRoomType().getTypeName());
+            }
         }
-        return bookingDTO;
+
+        // Map user info
+        if (booking.getUser() != null) {
+            dto.setUserId(booking.getUser().getId());
+            dto.setUserEmail(booking.getUser().getEmail());
+            dto.setUserName(booking.getUser().getName());
+        }
+
+        // Calculate number of nights
+        if (booking.getCheckInDate() != null && booking.getCheckOutDate() != null) {
+            long nights = booking.getCheckOutDate().toEpochDay() - booking.getCheckInDate().toEpochDay();
+            dto.setNumberOfNights((int) Math.max(nights, 1)); // At least 1 night
+        } else {
+            dto.setNumberOfNights(0);
+        }
+
+        return dto;
     }
 
-    public static UserDTO mapUserEntityToUserDTOPlusUserBookingsAndRoom(User user) {
-        UserDTO userDTO = new UserDTO();
+    // AvailableRoomDTO mapping
+    public static AvailableRoomDTO mapRoomTypeToAvailableRoomDTO(RoomType roomType,
+                                                                 LocalDate checkInDate,
+                                                                 LocalDate checkOutDate,
+                                                                 Integer availableCount) {
+        if (roomType == null) return null;
 
-        userDTO.setId(user.getId());
-        userDTO.setName(user.getName());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setPhoneNumber(user.getPhoneNumber());
-        userDTO.setRole(user.getRole());
+        AvailableRoomDTO dto = new AvailableRoomDTO();
+        dto.setRoomTypeId(roomType.getId());
+        dto.setTypeName(roomType.getTypeName());
+        dto.setDescription(roomType.getDescription());
+        dto.setPricePerNight(roomType.getPricePerNight());
+        dto.setPhotoUrl(roomType.getPhotoUrl());
+        dto.setMaxCapacity(roomType.getMaxCapacity());
+        dto.setAmenities(roomType.getAmenities());
+        dto.setAvailableCount(availableCount != null ? availableCount : 0);
+        dto.setCheckInDate(checkInDate);
+        dto.setCheckOutDate(checkOutDate);
 
-        if (!user.getBookings().isEmpty()) {
-            userDTO.setBookings(user.getBookings().stream().map(booking -> mapBookingEntityToBookingDTOPlusBookedRooms(booking, false)).collect(Collectors.toList()));
+        // Calculate total price
+        if (checkInDate != null && checkOutDate != null && roomType.getPricePerNight() != null) {
+            long nights = checkOutDate.toEpochDay() - checkInDate.toEpochDay();
+            nights = Math.max(nights, 1); // At least 1 night
+            BigDecimal totalPrice = roomType.getPricePerNight().multiply(BigDecimal.valueOf(nights));
+            dto.setTotalPrice(totalPrice);
+            dto.setNumberOfNights(nights);
+        } else {
+            dto.setTotalPrice(BigDecimal.ZERO);
+            dto.setNumberOfNights(0L);
         }
-        return userDTO;
+
+        return dto;
     }
 
+    // List mapping methods
+    public static List<RoomDTO> mapRoomListEntityToRoomListDTO(List<Room> roomList) {
+        if (roomList == null || roomList.isEmpty()) return List.of();
+        return roomList.stream()
+                .map(Utils::mapRoomEntityToRoomDTO)
+                .collect(Collectors.toList());
+    }
+
+    public static List<RoomTypeDTO> mapRoomTypeListEntityToRoomTypeListDTO(List<RoomType> roomTypeList) {
+        if (roomTypeList == null || roomTypeList.isEmpty()) return List.of();
+        return roomTypeList.stream()
+                .map(Utils::mapRoomTypeEntityToRoomTypeDTO)
+                .collect(Collectors.toList());
+    }
 
     public static List<UserDTO> mapUserListEntityToUserListDTO(List<User> userList) {
-        return userList.stream().map(Utils::mapUserEntityToUserDTO).collect(Collectors.toList());
-    }
-
-    public static List<RoomDTO> mapRoomListEntityToRoomListDTO(List<Room> roomList) {
-        return roomList.stream().map(Utils::mapRoomEntityToRoomDTO).collect(Collectors.toList());
+        if (userList == null || userList.isEmpty()) return List.of();
+        return userList.stream()
+                .map(Utils::mapUserEntityToUserDTO)
+                .collect(Collectors.toList());
     }
 
     public static List<BookingDTO> mapBookingListEntityToBookingListDTO(List<Booking> bookingList) {
-        return bookingList.stream().map(Utils::mapBookingEntityToBookingDTO).collect(Collectors.toList());
+        if (bookingList == null || bookingList.isEmpty()) return List.of();
+        return bookingList.stream()
+                .map(Utils::mapBookingEntityToBookingDTO)
+                .collect(Collectors.toList());
     }
 
+    // Enhanced mapping with rooms count
+    public static RoomTypeDTO mapRoomTypeEntityToRoomTypeDTOWithCounts(RoomType roomType) {
+        RoomTypeDTO dto = mapRoomTypeEntityToRoomTypeDTO(roomType);
+        if (dto != null && roomType.getRooms() != null) {
+            int totalRooms = roomType.getRooms().size();
+            int availableRooms = (int) roomType.getRooms().stream()
+                    .filter(r -> r.getStatus() == Room.RoomStatus.AVAILABLE)
+                    .count();
 
+            // Note: Your RoomTypeDTO needs these fields. If not, create a separate DTO
+            // dto.setTotalRooms(totalRooms);
+            // dto.setAvailableRooms(availableRooms);
+        }
+        return dto;
+    }
 }

@@ -1,84 +1,118 @@
 package com.shalom.shalomhotel.Controller;
 
+import com.shalom.shalomhotel.Dto.BookingRequestDTO;
 import com.shalom.shalomhotel.Dto.Response;
 import com.shalom.shalomhotel.Service.interfac.IBookingService;
-import com.shalom.shalomhotel.entity.Booking;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @RestController
-@RequestMapping("/booking")
+@RequestMapping("/api/bookings")
 public class BookingController {
 
     @Autowired
     private IBookingService bookingService;
+    @PostMapping
+    public ResponseEntity<Response> createBooking(@RequestBody BookingRequestDTO bookingRequest) {
+        Response response = bookingService.createBooking(bookingRequest);
 
-    @PostMapping("/book-room/{roomId}/{userId}")
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER')")
-    public ResponseEntity<Response> saveBookings(@PathVariable Long roomId,
-                                                 @PathVariable Long userId,
-                                                 @RequestBody Booking bookingRequest) {
-        Response response = bookingService.saveBooking(roomId, userId, bookingRequest);
-
-        // Determine HTTP status based on response content
-        if (response.getBookingConfirmationCode() != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(response); // 201 - Booking created
-        } else if (response.getMessage() != null &&
-                (response.getMessage().contains("not available") ||
-                        response.getMessage().contains("Invalid date"))) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response); // 400 - Bad request
-        } else if (response.getMessage() != null &&
-                response.getMessage().contains("Not Found")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // 404 - Room/User not found
+        if (response.getBooking() != null) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response); // 500 - Server error
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
+    }
+    @GetMapping("/confirmation/{confirmationCode}")
+    public ResponseEntity<Response> getBookingByConfirmationCode(
+            @PathVariable String confirmationCode) {
+
+        Response response = bookingService.getBookingByConfirmationCode(confirmationCode);
+
+        if (response.getBooking() != null) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<Response> getUserBookings(@PathVariable Long userId) {
+        Response response = bookingService.getUserBookings(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/cancel/{confirmationCode}")
+    public ResponseEntity<Response> cancelBooking(@PathVariable String confirmationCode) {
+        Response response = bookingService.cancelBooking(confirmationCode);
+
+        if (response.getBooking() != null) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PutMapping("/confirm/{confirmationCode}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response> confirmBooking(@PathVariable String confirmationCode) {
+        Response response = bookingService.confirmBooking(confirmationCode);
+
+        if (response.getBooking() != null) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response> searchBookings(@RequestParam String searchTerm) {
+        Response response = bookingService.searchBookings(searchTerm);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/all")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response> getAllBookings() {
         Response response = bookingService.getAllBookings();
-
-        if (response.getBookingList() != null && !response.getBookingList().isEmpty()) {
-            return ResponseEntity.ok(response); // 200 - Success with data
-        } else if (response.getMessage() != null && response.getMessage().contains("No bookings")) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response); // 204 - No content
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response); // 500 - Server error
-        }
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/get-by-confirmation-code/{confirmationCode}")
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER')")
-    public ResponseEntity<Response> getBookingByConfirmationCode(@PathVariable String confirmationCode) {
-        Response response = bookingService.findBookingConfirmationCode(confirmationCode);
+    @GetMapping("/status/{status}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response> getBookingsByStatus(@PathVariable String status) {
+        Response response = bookingService.getBookingsByStatus(status);
+        return ResponseEntity.ok(response);
+    }
+    @PutMapping("/check-in/{confirmationCode}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response> checkInBooking(@PathVariable String confirmationCode) {
+        Response response = bookingService.checkInBooking(confirmationCode);
 
         if (response.getBooking() != null) {
-            return ResponseEntity.ok(response); // 200 - Success with booking data
-        } else if (response.getMessage() != null && response.getMessage().contains("Not Found")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // 404 - Booking not found
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response); // 500 - Server error
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
-    @DeleteMapping("/cancel/{bookingId}")
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER')")
-    public ResponseEntity<Response> deleteBooking(@PathVariable Long bookingId) {
-        Response response = bookingService.cancelBooking(bookingId);
+    @PutMapping("/check-out/{confirmationCode}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response> checkOutBooking(@PathVariable String confirmationCode) {
+        Response response = bookingService.checkOutBooking(confirmationCode);
 
-        if (response.getMessage() != null && response.getMessage().contains("cancelled successfully")) {
-            return ResponseEntity.ok(response); // 200 - Successfully cancelled
-        } else if (response.getMessage() != null && response.getMessage().contains("not found")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // 404 - Booking not found
+        if (response.getBooking() != null) {
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response); // 500 - Server error
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
-
-
 }

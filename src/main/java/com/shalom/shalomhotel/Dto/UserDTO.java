@@ -1,6 +1,7 @@
 package com.shalom.shalomhotel.Dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,9 +12,17 @@ public class UserDTO {
     private String name;
     private String phoneNumber;
     private String role;
+
     private List<BookingDTO> bookings = new ArrayList<>();
 
-    // Manual Getters and Setters
+    public List<BookingDTO> getBookings() {
+        return bookings;
+    }
+
+    public void setBookings(List<BookingDTO> bookings) {
+        this.bookings = bookings;
+    }
+
     public Long getId() {
         return id;
     }
@@ -52,13 +61,5 @@ public class UserDTO {
 
     public void setRole(String role) {
         this.role = role;
-    }
-
-    public List<BookingDTO> getBookings() {
-        return bookings;
-    }
-
-    public void setBookings(List<BookingDTO> bookings) {
-        this.bookings = bookings;
     }
 }

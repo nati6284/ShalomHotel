@@ -35,7 +35,6 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Booking> bookings = new ArrayList<>();
 
-    // Manual Getters and Setters
     public Long getId() {
         return id;
     }

@@ -1,8 +1,8 @@
 package com.shalom.shalomhotel.Controller;
 
 import com.shalom.shalomhotel.Dto.Response;
-import com.shalom.shalomhotel.Service.interfac.IBookingService;
 import com.shalom.shalomhotel.Service.interfac.IRoomService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -13,149 +13,185 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
-@RequestMapping("/rooms")
+@RequestMapping("/api/rooms")
+
 public class RoomController {
 
     @Autowired
     private IRoomService roomService;
-    @Autowired
-    private IBookingService iBookingService;
 
-    @PostMapping("/add")
+    @PostMapping("/addtypes")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Response> addNewRoom(
-            @RequestParam(value = "photo", required = false) MultipartFile photo,
-            @RequestParam(value = "roomType", required = false) String roomType,
-            @RequestParam(value = "roomPrice", required = false) BigDecimal roomPrice,
-            @RequestParam(value = "roomDescription", required = false) String roomDescription) {
+    public ResponseEntity<Response> addRoomType(
+            @RequestParam("typeName") String typeName,
+            @RequestParam("description") String description,
+            @RequestParam("pricePerNight") BigDecimal pricePerNight,
+            @RequestParam("maxCapacity") Integer maxCapacity,
+            @RequestParam(value = "amenities", required = false) String amenities,
+            @RequestParam(value = "photo", required = false) MultipartFile photo) {
 
-        // Input validation
-        if (photo == null || photo.isEmpty() || roomType == null || roomType.isBlank() || roomPrice == null) {
-            Response response = new Response();
-            response.setMessage("Please provide all required fields: photo, roomType, roomPrice");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response); // 400
-        }
+        Response response = roomService.addRoomType(typeName, description, pricePerNight,
+                maxCapacity, amenities, photo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
-        Response response = roomService.addNewRoom(photo, roomType, roomPrice, roomDescription);
+    @PutMapping("/updatetypes/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response> updateRoomType(
+            @PathVariable Long id,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "pricePerNight", required = false) BigDecimal pricePerNight,
+            @RequestParam(value = "maxCapacity", required = false) Integer maxCapacity,
+            @RequestParam(value = "amenities", required = false) String amenities,
+            @RequestParam(value = "photo", required = false) MultipartFile photo) {
 
-        // Determine HTTP status based on response content
-        if (response.getRoom() != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(response); // 201
+        Response response = roomService.updateRoomType(id, description, pricePerNight,
+                maxCapacity, amenities, photo);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/alltypes")
+
+    public ResponseEntity<Response> getAllRoomTypes() {
+        Response response = roomService.getAllRoomTypes();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/types/names")
+
+    public ResponseEntity<List<String>> getAllRoomTypeNames() {
+        List<String> roomTypes = roomService.getAllRoomTypeNames();
+        return ResponseEntity.ok(roomTypes);
+    }
+
+    @GetMapping("/types/{id}")
+    public ResponseEntity<Response> getRoomTypeById(@PathVariable Long id) {
+        Response response = roomService.getRoomTypeById(id);
+
+        if (response.getRoomType() != null) {
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response); // 400
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+    }
+
+    @DeleteMapping("/deletetypes/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response> deleteRoomType(@PathVariable Long id) {
+        Response response = roomService.deleteRoomType(id);
+
+        if (response.getMessage().contains("successfully")) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/addroom")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response> addRoom(
+            @RequestParam("roomNumber") String roomNumber,
+            @RequestParam("floorNumber") Integer floorNumber,
+            @RequestParam("roomTypeId") Long roomTypeId,
+            @RequestParam(value = "hasView", required = false, defaultValue = "false") Boolean hasView,
+            @RequestParam(value = "isAccessible", required = false, defaultValue = "false") Boolean isAccessible,
+            @RequestParam(value = "specialFeatures", required = false) String specialFeatures,
+            HttpServletRequest request) { // Add this parameter
+
+
+        request.getParameterMap().forEach((key, values) -> {
+            System.out.println(key + ": " + Arrays.toString(values));
+        });
+
+
+        Response response = roomService.addRoom(roomNumber, floorNumber, roomTypeId,
+                hasView, isAccessible, specialFeatures);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/updateRoom/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response> updateRoom(
+            @PathVariable Long id,
+            @RequestParam(value = "roomNumber", required = false) String roomNumber,
+            @RequestParam(value = "floorNumber", required = false) Integer floorNumber,
+            @RequestParam(value = "roomTypeId", required = false) Long roomTypeId,
+            @RequestParam(value = "hasView", required = false) Boolean hasView,
+            @RequestParam(value = "isAccessible", required = false) Boolean isAccessible,
+            @RequestParam(value = "specialFeatures", required = false) String specialFeatures) {
+
+        Response response = roomService.updateRoom(id, roomNumber, floorNumber, roomTypeId,
+                hasView, isAccessible, specialFeatures);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/updatestatus/{id}/status")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response> updateRoomStatus(
+            @PathVariable Long id,
+            @RequestParam("status") String status) {
+
+        Response response = roomService.updateRoomStatus(id, status);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/all")
+
     public ResponseEntity<Response> getAllRooms() {
         Response response = roomService.getAllRooms();
-
-        if (response.getRoomList() != null && !response.getRoomList().isEmpty()) {
-            return ResponseEntity.ok(response); // 200
-        } else if (response.getMessage() != null && response.getMessage().contains("No rooms")) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response); // 204
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response); // 500
-        }
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/types")
-    public ResponseEntity<List<String>> getAllRoomTypes() {
-        List<String> roomTypes = roomService.getAllRoomType();
-        return ResponseEntity.ok(roomTypes); // 200
-    }
-
-    @GetMapping("/room-by-id/{roomId}")
-    public ResponseEntity<Response> getRoomById(@PathVariable Long roomId) {
-        Response response = roomService.getRoomById(roomId);
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<Response> getRoomById(@PathVariable Long id) {
+        Response response = roomService.getRoomById(id);
 
         if (response.getRoom() != null) {
-            return ResponseEntity.ok(response); // 200
-        } else if (response.getMessage() != null && response.getMessage().contains("not found")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // 404
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response); // 500
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
-    @GetMapping("/all-available-room")
-    public ResponseEntity<Response> getAvailableRooms() {
-        Response response = roomService.getAllAvailableRooms();
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Response> deleteRoom(@PathVariable Long id) {
+        Response response = roomService.deleteRoom(id);
+
+        if (response.getMessage().contains("successfully")) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+    @GetMapping("/availability")
+    public ResponseEntity<Response> checkAvailability(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate,
+            @RequestParam String roomType) {
+
+        System.out.println("Controller received request: " +
+                "checkInDate=" + checkInDate +
+                ", checkOutDate=" + checkOutDate +
+                ", roomType=" + roomType);
+
+        Response response = roomService.getAvailableRoomsByDatesAndType(checkInDate, checkOutDate, roomType);
+
+        System.out.println("Controller sending response: " + response.getMessage());
+        System.out.println("Room list size: " + (response.getRoomList() != null ? response.getRoomList().size() : 0));
 
         if (response.getRoomList() != null && !response.getRoomList().isEmpty()) {
-            return ResponseEntity.ok(response); // 200
-        } else if (response.getMessage() != null && response.getMessage().contains("No available")) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response); // 204
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response); // 500
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
         }
     }
 
-    @GetMapping("/available-rooms-by-date-and-type")
-    public ResponseEntity<Response> getAvailableRoomsByDateAndType(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate,
-            @RequestParam(required = false) String roomType) {
 
-        // Input validation
-        if (checkInDate == null || checkOutDate == null || roomType == null || roomType.isBlank()) {
-            Response response = new Response();
-            response.setMessage("Please provide all required fields: checkInDate, checkOutDate, roomType");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response); // 400
-        }
 
-        // Validate dates
-        if (checkOutDate.isBefore(checkInDate) || checkInDate.isBefore(LocalDate.now())) {
-            Response response = new Response();
-            response.setMessage("Invalid dates: check-in must be today or later, and check-out must be after check-in");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response); // 400
-        }
-
-        Response response = roomService.getAvailableRoomsByDataAndType(checkInDate, checkOutDate, roomType);
-
-        if (response.getRoomList() != null && !response.getRoomList().isEmpty()) {
-            return ResponseEntity.ok(response); // 200
-        } else if (response.getMessage() != null && response.getMessage().contains("No available")) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response); // 204
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response); // 400
-        }
-    }
-
-    @PutMapping("/update/{roomId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Response> updateRoom(
-            @PathVariable Long roomId,
-            @RequestParam(value = "photo", required = false) MultipartFile photo,
-            @RequestParam(value = "roomType", required = false) String roomType,
-            @RequestParam(value = "roomPrice", required = false) BigDecimal roomPrice,
-            @RequestParam(value = "roomDescription", required = false) String roomDescription) {
-
-        Response response = roomService.updateRoom(roomId, roomDescription, roomType, roomPrice, photo);
-
-        if (response.getRoom() != null) {
-            return ResponseEntity.ok(response); // 200
-        } else if (response.getMessage() != null && response.getMessage().contains("not found")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // 404
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response); // 400
-        }
-    }
-
-    @DeleteMapping("/delete/{roomId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Response> deleteRoom(@PathVariable Long roomId) {
-        Response response = roomService.deleteRoom(roomId);
-
-        if (response.getMessage() != null && response.getMessage().contains("deleted successfully")) {
-            return ResponseEntity.ok(response); // 200
-        } else if (response.getMessage() != null && response.getMessage().contains("not found")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // 404
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response); // 500
-        }
-    }
 }
