@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +32,7 @@ public class BookingService implements IBookingService {
     @Autowired
     private RoomTypeRepository roomTypeRepository;
 
-    // Helper method to calculate nights using Period
+
     private long calculateNights(LocalDate checkIn, LocalDate checkOut) {
         if (checkIn == null || checkOut == null) {
             return 0;

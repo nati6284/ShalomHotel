@@ -2,7 +2,6 @@ package com.shalom.shalomhotel.Controller;
 
 import com.shalom.shalomhotel.Dto.Response;
 import com.shalom.shalomhotel.Dto.UpdateUserRequest;
-import com.shalom.shalomhotel.Dto.UserDTO;
 import com.shalom.shalomhotel.Service.interfac.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
