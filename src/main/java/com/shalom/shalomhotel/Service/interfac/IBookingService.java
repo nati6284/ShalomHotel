@@ -2,8 +2,7 @@ package com.shalom.shalomhotel.Service.interfac;
 
 import com.shalom.shalomhotel.Dto.BookingRequestDTO;
 import com.shalom.shalomhotel.Dto.Response;
-import java.time.LocalDate;
-import java.util.List;
+
 
 public interface IBookingService {
 

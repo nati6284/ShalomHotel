@@ -1,7 +1,6 @@
 package com.shalom.shalomhotel.Service.interfac;
 
 import com.shalom.shalomhotel.Dto.Response;
-import com.shalom.shalomhotel.Dto.AvailableRoomDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
